@@ -37,17 +37,20 @@ RUN \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/*
 
-
-
 # Put conda in path so we can use conda activate and mssql drivers
 ENV PATH=$CONDA_DIR/bin:$PATH:/opt/mssql-tools18/bin
 
 # Set up conda commands, see https://stackoverflow.com/a/58081608/4413446
-# TODO fix this, it doesn't seem to be picked up by the JupyterLab terminals
+# TODO fix this, it doesn't seem to be picked up by the JupyterLab terminals (need .profile?)
+# create an folder for environments (if not already established)
+WORKDIR /build
+COPY environment.yml /build/environment.yml
 RUN touch /etc/skel/.bashrc && \
     touch /etc/skel/.profile && \
     echo 'eval "$(command conda shell.bash hook 2> /dev/null)"' >> /etc/skel/.bashrc && \
-    echo 'if [ -f ~/.bashrc ]; then . ~/.bashrc; fi' >> /etc/skel/.profile
+    echo 'if [ -f ~/.bashrc ]; then . ~/.bashrc; fi' >> /etc/skel/.profile && \
+    mkdir -p $CONDA_DIR/envs && \
+    conda env create -f environment.yml
 
 
 # Override Runtime label and environment variables metadata
