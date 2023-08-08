@@ -130,7 +130,11 @@ RUN mkdir -p "${CONDA_DIR}" && \
     mamba run -n renv R -e "IRkernel::installspec(user = FALSE)" && \
     mamba run -n datascience python -m ipykernel install --name='pydatascience' --display-name="Python Datascience"
 
-RUN nbdime config-git --enable --system
+# custom config for git
+RUN nbdime config-git --enable --system && \
+    echo "**/.conda/**" > /etc/gitignore && \
+    git config --system core.excludesFile '/etc/gitignore' 
+   
 
 # TODO add some useful jupyter extensions to base interface env
 
