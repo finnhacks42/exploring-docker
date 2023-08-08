@@ -6,7 +6,7 @@ ENV DEBIAN_FRONTEND=noninteractive \
     LC_ALL=en_US.UTF-8 LANG=C.UTF-8 LANGUAGE=en_US.UTF-8 \
     TERM=xterm
 
-
+# if building internally, need either internet connectivity to ubuntu repos or that they are setup in Artifactory
 RUN apt-get update && apt-get dist-upgrade -y && \
   apt-get update && apt-get install -y --no-install-recommends \
   locales \
@@ -51,7 +51,10 @@ RUN apt-get update && apt-get dist-upgrade -y && \
   rm -rf /var/lib/apt/lists/* && \
   echo "en_US.UTF-8 UTF-8" > /etc/locale.gen && locale-gen
 
-# install odbc drivers for mssql
+# TODO ensure we have linear algebra libraries suited to hardware
+# TODO make version for gpu enabled compute, with approprite drivers
+
+# install odbc drivers for mssql (if building internally, must be urls must be whitelisted or available via Artifactory)
 RUN \
     curl https://packages.microsoft.com/keys/microsoft.asc | apt-key add - &&\
     curl https://packages.microsoft.com/config/ubuntu/22.04/prod.list > /etc/apt/sources.list.d/mssql-release.list &&\
@@ -61,6 +64,7 @@ RUN \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/*
 
+# TODO add certificate the recognises internal servers
 RUN rm -f /etc/krb5.conf && \
     mkdir -p /etc/pki/tls/certs && \
     ln -s /etc/ssl/certs/ca-certificates.crt /etc/pki/tls/certs/ca-bundle.crt && \
@@ -87,6 +91,7 @@ RUN for i in /bin /etc /opt /sbin /usr /build; do \
   fi; \
   done
 
+# if building internally would need to change initial_condarc to point to Artifactory
 USER cdsw
 COPY --chown=cdsw:cdsw build-utils/interface.yml build-utils/renv.yml build-utils/datascience.yml /build/
 COPY --chown=cdsw:cdsw build-utils/initial_condarc /home/cdsw/.condarc
@@ -125,6 +130,9 @@ RUN mkdir -p "${CONDA_DIR}" && \
     mamba run -n renv R -e "IRkernel::installspec(user = FALSE)" && \
     mamba run -n datascience python -m ipykernel install --name='pydatascience' --display-name="Python Datascience"
 
+# TODO add some useful jupyter extensions to base interface env
+
+
 # configure for CML
 RUN chmod +x /usr/local/bin/start_jupyterlab.sh && \
     ln -s /user/local/bin/start_jupyterlab.sh /usr/local/bin/ml-runtime-editor && \
@@ -142,9 +150,7 @@ CMD ["jupyter", "lab", "--ip=0.0.0.0", "--no-browser"]
 
 # Set Runtime label and environment variables metadata
 # note pbj dockerfile states ML_RUNTIME_EDITOR must not be changed but
-# documentation says if using a 3rd party editor, then set it.
-
-#and ML_RUNTIME_METADATA_VERSION must not be changed.
+# documentation says if using a 3rd party editor, then set it ...
 ENV ML_RUNTIME_EDITOR="Jupyterlab" \
     ML_RUNTIME_METADATA_VERSION="2" \
     ML_RUNTIME_KERNEL="Python 3.10" \
