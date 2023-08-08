@@ -1,0 +1,12 @@
+
+name: interface
+dependencies:
+  - python=3.10.9
+  - jupyter_kernel_gateway=2.5.2
+  - jupyter_client=7.4.9
+  - jupyterlab
+  - ipykernel
+  - ipywidgets
+  - nbdime
+  - mamba
+  - pip

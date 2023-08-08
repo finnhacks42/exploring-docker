@@ -1,0 +1,45 @@
+
+name: datascience
+dependencies:
+  - python=3.10.9
+  - ipykernel
+  - scikit-learn-intelex
+  - umap-learn
+  - numpy
+  - scipy
+  - networkx
+  - pandas
+  - geopandas
+  - matplotlib
+  - seaborn
+  - statsmodels
+  - pytorch
+  - transformers
+  - spacy
+  - nltk
+  - gensim
+  - bertopic
+  - hdbscan
+  - wordcloud
+  - fuzzywuzzy
+  - scrapy
+  - beautifulsoup4
+  - yaml
+  - xlsxwriter
+  - python-docx
+  - pypdf
+  - camelot-py
+  - sqlalchemy
+  - pyodbc
+  - requests-kerberos
+  - python-hdfs
+  - python-xxhash
+  - tqdm
+  - termcolor
+  - click
+  - pytest
+  - pylint
+  - mypy
+  - bandit
+
+

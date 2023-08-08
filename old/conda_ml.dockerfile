@@ -1,6 +1,8 @@
 #Dockerfile
 #Specify an ML Runtime base image
 FROM docker.repository.cloudera.com/cloudera/cdsw/ml-runtime-jupyterlab-python3.9-standard:2022.11.1-b2
+
+
 # Upgrade packages in the base image
 RUN apt-get update && apt-get upgrade -y && \
     apt-get install -y build-essential && \
@@ -21,7 +23,23 @@ RUN apt-get update && apt-get upgrade -y && \
 # Install miniconda
 ENV CONDA_DIR /opt/conda
 RUN wget --quiet https://github.com/conda-forge/miniforge/releases/latest/download/Miniforge-pypy3-Linux-x86_64.sh -O ~/miniconda.sh && \
-    /bin/bash ~/miniconda.sh -b -p /opt/conda
+    /bin/bash ~/miniconda.sh -b -p /opt/conda && \
+    rm ~/miniconda.sh
+
+# Put conda in path so we can use conda activate and mssql drivers
+ENV PATH=$PATH:$CONDA_DIR/bin
+
+#Set up conda commands, see https://stackoverflow.com/a/58081608/4413446
+#TODO fix this, it doesn't seem to be picked up by the JupyterLab terminals (need .profile?)
+#create an folder for environments (if not already established)
+WORKDIR /build
+COPY environment.yml /build/environment.yml
+RUN touch /etc/skel/.bashrc && \
+    touch /etc/skel/.profile && \
+    echo 'eval "$(command conda shell.bash hook 2> /dev/null)"' >> /etc/skel/.bashrc && \
+    echo 'if [ -f ~/.bashrc ]; then . ~/.bashrc; fi' >> /etc/skel/.profile && \
+    mkdir -p $CONDA_DIR/envs && \
+    conda env create -f environment.yml
 
 # TODO: consider replacing miniforge with mamba
 
@@ -37,20 +55,18 @@ RUN \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/*
 
-# Put conda in path so we can use conda activate and mssql drivers
-ENV PATH=$CONDA_DIR/bin:$PATH:/opt/mssql-tools18/bin
+# Add mssql drivers to path
+ENV PATH=$PATH:/opt/mssql-tools18/bin
 
-# Set up conda commands, see https://stackoverflow.com/a/58081608/4413446
-# TODO fix this, it doesn't seem to be picked up by the JupyterLab terminals (need .profile?)
-# create an folder for environments (if not already established)
-WORKDIR /build
-COPY environment.yml /build/environment.yml
-RUN touch /etc/skel/.bashrc && \
-    touch /etc/skel/.profile && \
-    echo 'eval "$(command conda shell.bash hook 2> /dev/null)"' >> /etc/skel/.bashrc && \
-    echo 'if [ -f ~/.bashrc ]; then . ~/.bashrc; fi' >> /etc/skel/.profile && \
-    mkdir -p $CONDA_DIR/envs && \
-    conda env create -f environment.yml
+
+
+# SHELL ["/usr/bin/bash", "--login","-c"]
+# RUN conda init bash > ~/conda_init.txt && \
+#      .~/.bashrc && \
+#      conda activate ds
+USER cdsw
+SHELL ["conda", "run", "-n", "ds", "/usr/bin/bash", "-c"]
+RUN conda init bash && python -m ipykernel install --user --name ds --display-name data-science
 
 
 # Override Runtime label and environment variables metadata
@@ -58,7 +74,7 @@ ENV ML_RUNTIME_KERNEL="Conda" \
     ML_RUNTIME_EDITION="Finn Tech Preview" \
     ML_RUNTIME_SHORT_VERSION="2023.06.1" \
     ML_RUNTIME_MAINTENANCE_VERSION="5" \
-    ML_RUNTIME_FULL_VERSION="2022.11.5" \
+    ML_RUNTIME_FULL_VERSION="2023.06.1-a" \
     ML_RUNTIME_DESCRIPTION="Conda ML Runtime"
 
 LABEL com.cloudera.ml.runtime.kernel=$ML_RUNTIME_KERNEL \
