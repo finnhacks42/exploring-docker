@@ -2,6 +2,7 @@
 name: datascience
 dependencies:
   - python=3.10.9
+  - pip
   - ipykernel
   - scikit-learn-intelex
   - umap-learn
@@ -41,5 +42,8 @@ dependencies:
   - pylint
   - mypy
   - bandit
+  - tzlocal
+  - pip:
+      - rpy2
 
 
