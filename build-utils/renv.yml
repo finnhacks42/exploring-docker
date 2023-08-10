@@ -19,5 +19,6 @@ dependencies:
   - r-shiny
   - r-tidymodels
   - r-tidyverse
+  - r-reticulate
   - unixodbc
 
