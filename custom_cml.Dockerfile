@@ -24,6 +24,7 @@ RUN apt-get update && apt-get dist-upgrade -y && \
 # TODO ensure we have linear algebra libraries suited to hardware
 # TODO make version for gpu enabled compute, with approprite drivers
 
+# TODO add certificate the recognises internal servers
 # install odbc drivers for mssql (if building internally, must be urls must be whitelisted or available via Artifactory)
 RUN \
     curl https://packages.microsoft.com/keys/microsoft.asc | apt-key add - &&\
@@ -32,12 +33,8 @@ RUN \
     DEBIAN_FRONTEND=noninteractive ACCEPT_EULA=Y apt-get install -y --no-install-recommends msodbcsql18 mssql-tools18 unixodbc-dev && \
     echo 'export PATH="$PATH:/opt/mssql-tools18/bin"' >> /etc/bash.bashrc && \
     apt-get clean && \
-    rm -rf /var/lib/apt/lists/*
-
-# TODO add certificate the recognises internal servers
-# add config that should apply to all users
-# echo 'eval "$(command conda shell.bash hook 2> /dev/null)"' >> /etc/bash.bashrc && \
-RUN echo "export PATH=$PATH:/opt/conda/envs/renv/bin" >> /etc/bash.bashrc
+    rm -rf /var/lib/apt/lists/* && \
+    echo "export PATH=$PATH:/opt/conda/envs/renv/bin" >> /etc/bash.bashrc
 
 COPY build-utils/conda_init build-utils/renv.yml build-utils/datascience.yml /build/
 # # if building internally would need to change initial_condarc to point to Artifactory
@@ -46,7 +43,6 @@ COPY build-utils/initial_condarc /root/.condarc
 ENV CONDA_DIR=/opt/conda \
     MAMBA_ROOT_PREFIX=/opt/conda \
     R_HOME=/opt/conda/envs/renv/lib/R
-
 
 RUN mkdir -p "${CONDA_DIR}" && \
     wget --progress=dot:giga -O /build/micromamba.tar.bz2 \
@@ -60,34 +56,15 @@ RUN mkdir -p "${CONDA_DIR}" && \
     "python=3.9" \
     'nbdime' \
     'mamba' \
-    'pip'
-
-RUN eval "$(command conda shell.bash hook 2> /dev/null)" && \
+    'pip' && \
+    eval "$(command conda shell.bash hook 2> /dev/null)" && \
     rm -r micromamba && \
     mamba env create -f renv.yml && \
-    mamba run -n renv R -e "IRkernel::installspec(user = FALSE)"
-
-#
-RUN export PATH="$PATH:/opt/conda/envs/renv/bin" && \
+    mamba run -n renv R -e "IRkernel::installspec(user = FALSE)" && \
+    export PATH="$PATH:/opt/conda/envs/renv/bin" && \
     mamba env create -f datascience.yml && \
-    mamba run -n datascience python -m ipykernel install --name='pydatascience' --display-name="Python Datascience"
-
-    
-   # mamba env create -f combined_env.yml && \
-   # mamba run -n datascience R -e "IRkernel::installspec(user = FALSE)" && \
-   # mamba run -n datascience python -m ipykernel install --name='pydatascience' --display-name="Python Datascience"
-    
-    
-    #mamba env create -f renv.yml && \
-    #mamba run -n renv R -e "IRkernel::installspec(user = FALSE)" 
-    
-    # TODO set R-home
-    #&& \
-    #mamba env create -f datascience.yml && \
-   # mamba run -n datascience python -m ipykernel install --name='pydatascience' --display-name="Python Datascience"
-
-# config for git and conda
-RUN nbdime config-git --enable --system && \
+    mamba run -n datascience python -m ipykernel install --name='pydatascience' --display-name="Python Datascience" && \
+    nbdime config-git --enable --system && \
     echo "**/.conda/**" > /etc/gitignore && \
     git config --system core.excludesFile '/etc/gitignore' && \
     mkdir -p /etc/conda && \
