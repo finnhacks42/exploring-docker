@@ -1,7 +1,7 @@
 # Dockerfile building off Cloudera CML image
 
 # TODO get tag for latest Python3.9 or 3.10 version
-FROM docker.repository.cloudera.com/cloudera/cdsw/ml-runtime-jupyterlab-python3.7-standard:2021.12.1-b17
+FROM docker.repository.cloudera.com/cloudera/cdsw/ml-runtime-jupyterlab-python3.10-standard:2023.05.2-b7
 
 # if building internally, need either internet connectivity to ubuntu repos or that they are setup in Artifactory
 RUN apt-get update && apt-get dist-upgrade -y && \
