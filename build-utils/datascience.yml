@@ -15,7 +15,9 @@ dependencies:
   - seaborn
   - statsmodels
   - pytorch
+  - tensorflow
   - transformers
+  - sentence-transformers
   - spacy
   - nltk
   - gensim
