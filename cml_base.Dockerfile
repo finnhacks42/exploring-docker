@@ -4,13 +4,6 @@
 
 FROM docker.repository.cloudera.com/cloudera/cdsw/ml-runtime-jupyterlab-python3.10-standard:2023.05.2-b7
 
-# if building internally, need either internet connectivity to ubuntu repos or that they are setup in Artifactory
-# TODO ensure we have linear algebra libraries suited to hardware
-# TODO make version for gpu enabled compute, with approprite drivers
-
-# TODO add certificate the recognises internal servers
-# install odbc drivers for mssql (if building internally, must be urls must be whitelisted or available via Artifactory)
-
 ENV CONDA_DIR=/opt/conda \
     MAMBA_ROOT_PREFIX=/opt/conda \
     R_HOME=/opt/conda/envs/renv/lib/R
@@ -56,7 +49,6 @@ RUN apt-get update && apt-get dist-upgrade -y && \
     mkdir -p /etc/conda && \
     echo "auto_activate_base: false" >> /etc/conda/condarc && \
     cat /build/conda_init >> /etc/profile && \
-    rm /root/.condarc && \
     chmod +x fix_permissions.sh && \
     ./fix_permissions.sh /etc /etc/alternatives
 
@@ -69,7 +61,7 @@ ENV ML_RUNTIME_EDITOR="Jupyterlab" \
     JUPYTERLAB_WORKSPACES_DIR=/tmp \
     ML_RUNTIME_JUPYTER_KERNEL_NAME="python3" \ 
     ML_RUNTIME_DESCRIPTION="Minimal Custom Runtime" \
-    ML_RUNTIME_FULL_VERSION=202308.18.1 \
+    ML_RUNTIME_FULL_VERSION=202308.18.2 \
     ML_RUNTIME_SHORT_VERSION=202308.18 \
     ML_RUNTIME_MAINTENANCE_VERSION="1" 
 
